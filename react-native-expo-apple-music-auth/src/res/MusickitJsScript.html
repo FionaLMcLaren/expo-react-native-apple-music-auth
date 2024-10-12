@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <!-- Some HTML to show before the apple music's user authorization loads in -->
+    <h1>
+      Loading apple music auth...
+    </h1>
+
+    <!-- Connects to musickit js -->
+    <script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js" data-web-components async></script>
+
+    <!-- The JS code to deal with the Musickit js instance and user authorization -->
+    <script>
+
+      // We get the devToken we injected into the webview that 
+      // we set up on the react native side
+      const devToken = JSON.parse(
+      window.ReactNativeWebView.injectedObjectJson(),
+      ).devToken;
+
+      // Call configure() to configure an instance of MusicKit js that we can use
+      // to make a call to obtain a user token
+      document.addEventListener("musickitloaded", async () => {
+        try {
+          await MusicKit.configure({
+            // Using the devToken object obtained from the React Native
+            // side. Alternatively, you can just replace the `devToken`
+            // constant with your generated dev token as a string
+            developerToken: devToken,
+
+            // Your app details here
+            app: {
+              name: "My Awesome App",
+              build: "",
+            },
+          });
+        } catch (error) {
+          // Handle configuration error 
+        }
+      
+        // MusicKit instance is available
+        const music = MusicKit.getInstance();
+
+        // Use the authorize method to open the sign-in and authorization flow
+        // so your user can sign in with Apple Music. Once complete, send the token
+        // to the React Native side to deal with
+        await music.authorize().then((token) => {
+          window.ReactNativeWebView.postMessage(token);
+        });
+      })
+    </script>
+  </body>
+</html> 
